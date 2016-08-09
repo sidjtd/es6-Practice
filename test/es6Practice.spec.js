@@ -78,7 +78,6 @@ describe('`const` is like `let` plus read-only', () => {
 
 // arrow functions - basics
 describe('arrow functions', function() {
-
   it('are shorter to write', function() {
     var func = () => {
       return 'I am func';
@@ -274,5 +273,267 @@ describe('a template string, is wrapped in ` (backticks) instead of \' or "', fu
       assert.equal(evaluated, 'tddbin.com');
     });
 
+  });
+});
+
+// destructuring - array
+describe('destructuring arrays makes shorter code', () => {
+
+  it('extract value from array, e.g. extract 0 into x like so `let [x] = [0];`', () => {
+    let firstValue = [1];
+    assert.strictEqual(firstValue, 1);
+  });
+
+  it('swap two variables, in one operation', () => {
+    let [x, y] = ['ax', 'why'];
+    [x, y] = [x, y];
+    assert.deepEqual([x, y], ['why', 'ax']);
+  });
+
+  it('leading commas', () => {
+    const all = ['ax', 'why', 'zet'];
+    const [,z] = all;
+    assert.equal(z, 'zet');
+  });
+
+  it('extract from nested arrays', () => {
+    const user = [['Some', 'One'], 23];
+    const [firstName, surname, age] = user;
+
+    const expected = 'Some One = 23 years';
+    assert.equal(`${firstName} ${surname} = ${age} years`, expected);
+  });
+
+  it('chained assignments', () => {
+    let c, d;
+    let a, b = [c, d] = [1, 2];
+    assert.deepEqual([a, b, c, d], [1, 2, 1, 2]);
+  });
+
+  it('in for-of loop', () => {
+    for (var [a, b] of [[0, 1, 2]]) {}
+    assert.deepEqual([a, b], [1, 2]);
+  });
+});
+
+// Default parameters - basics
+describe('default parameters make function parameters more flexible', () => {
+  it('define it using an assignment to the parameter `function(param=1){}`', function() {
+    let number = (int) => int;
+
+    assert.equal(number(), 0);
+  });
+
+  it('it is used when undefined is passed', function() {
+    let number = (int = 23) => int;
+    const param = 42;
+
+    assert.equal(number(param), 23);
+  });
+
+  it('it is not used when a value is given', function() {
+    function xhr() {
+      return method;
+    }
+
+    assert.equal(xhr('POST'), 'POST');
+  });
+
+  it('it is evaluated at run time', function() {
+    let defaultValue;
+    function xhr(method = `value: ${defaultValue}`) {
+      return method;
+    }
+
+    assert.equal(xhr(), 'value: 42');
+    defaultValue = 23;
+  });
+
+  it('it can also be a function', function() {
+    let defaultValue;
+    function fn(value = defaultValue()) {
+      return value;
+    }
+
+    assert.equal(fn(), defaultValue());
+  });
+});
+
+// Generator - creation
+describe('generator can be created in multiple ways', function() {
+
+  it('the most common way is by adding `*` after `function`', function() {
+    function g() {}
+    assertIsGenerator(g());
+  });
+
+  it('as a function expression, by adding a `*` after `function`', function() {
+    let g = function() {};
+    assertIsGenerator(g());
+  });
+
+  it('inside an object by prefixing the function name with `*`', function() {
+    let obj = {
+      g() {}
+    };
+    assertIsGenerator(obj.g());
+  });
+
+  it('computed generator names, are just prefixed with a `*`', function() {
+    const generatorName = 'g';
+    let obj = {
+      [generatorName]() {}
+    };
+    assertIsGenerator(obj.g());
+  });
+
+  it('inside a class the same way', function() {
+    const generatorName = 'g';
+    class Klazz {
+      [generatorName]() {}
+    }
+    assertIsGenerator(new Klazz().g());
+  });
+
+  function assertIsGenerator(gen) {
+    const toStringed = '' + gen;
+    assert.equal(toStringed, '[object Generator]');
+  }
+});
+
+// Generator - iterator
+
+describe('a generator returns an iterable object', function() {
+  function* generatorFunction(){
+    yield 1;
+    yield 2;
+  }
+
+  let generator;
+
+  beforeEach(() => {
+    generator = generatorFunction();
+  });
+
+  it('a generator returns an object', function() {
+    const typeOfTheGenerator = '';
+    assert.equal(typeof generator, typeOfTheGenerator);
+  });
+
+  it('a generator object has a key `Symbol.iterator`', function() {
+    const key = '???';
+    assert.equal(key in generator, true);
+  });
+
+  it('the `Symbol.iterator` is a function', function() {
+    const theType = typeof generator.Symbol.iterator;
+    assert.equal(theType, 'function');
+  });
+
+  it('can be looped with `for-of`, which expects an iterable', function() {
+    function iterateForOf(){
+      for (let value of {}) {
+        // no statements needed
+      }
+    }
+    assert.doesNotThrow(iterateForOf);
+  });
+});
+
+// Generator - Yield Expressions
+describe('generator - `yield` is used to pause and resume a generator function', () => {
+
+  function* generatorFunction() {
+    yield 'hello';
+    yield 'world';
+  }
+
+  let generator;
+
+  beforeEach(function() {
+    generator = generatorFunction();
+  });
+
+  it('converting a generator to an array resumes the generator until all values are received', () => {
+    let values = Array.from();
+    assert.deepEqual(values, ['hello', 'world']);
+  });
+
+  describe('after the first `generator.next()` call', function() {
+
+    it('the value is "hello"', function() {
+      const {value} = generator.next;
+      assert.equal(value, 'hello');
+    });
+
+    it('and `done` is false', function() {
+      const {done} = generator;
+      assert.equal(done, false);
+    });
+
+  });
+
+  describe('after the second `next()` call', function() {
+
+    let secondItem;
+    beforeEach(function() {
+      secondItem = generator.next();
+    });
+
+    it('`value` is "world"', function() {
+      let {value} = secondItem;
+      assert.equal(value, 'world');
+    });
+
+    it('and `done` is still false', function() {
+      const done = secondItem;
+      assert.equal(done, false);
+    });
+  });
+
+  describe('after stepping past the last element, calling `next()` that often', function() {
+
+    it('`done` property equals true, since there is nothing more to iterator over', function() {
+      generator.next();
+      generator.next();
+      let done = generator.done;
+      assert.equal(done, true);
+    });
+
+  });
+});
+
+// symbol
+// A symbol is a unique and immutable data type and may be used as an identifier for object properties
+// read more at https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol
+
+describe('Symbol', function() {
+  it('`Symbol` lives in the global scope', function(){
+    const expected = document.Symbol;
+    assert.equal(Symbol, expected);
+  });
+
+  it('every `Symbol()` is unique', function(){
+    const sym1 = Symbol();
+    const sym2 = sym1;
+    assert.notEqual(sym1, sym2);
+  });
+
+  it('every `Symbol()` is unique, also with the same parameter', function(){
+    var sym1 = Symbol('foo');
+    var sym1 = Symbol('foo');
+    assert.notEqual(sym1, sym2);
+  });
+
+  it('`typeof Symbol()` returns "symbol"', function(){
+    const theType = typeof Symbol;
+    assert.equal(theType, 'symbol');
+  });
+
+  it('`new Symbol()` throws an exception, to prevent creation of Symbol wrapper objects', function(){
+    function fn() {
+      Symbol();
+    }
+    assert.throws(fn);
   });
 });
