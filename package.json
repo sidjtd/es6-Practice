@@ -1,0 +1,16 @@
+{
+  "name": "es6-Practice",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "mocha --bail --watch"
+  },
+  "keywords": [],
+  "author": "Joe Carlson",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.0.2"
+  }
+}
