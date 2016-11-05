@@ -1,6 +1,9 @@
+//Testing new Computer Sync with Github
+
 var chai = require('chai');
 var assert = chai.assert;
 // To do: make all tests pass, leave the asserts unchanged!
+
 
 // block scope - let
 describe('`let` restricts the scope of the variable to the current block', () => {
